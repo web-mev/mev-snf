@@ -1,0 +1,1 @@
+Rscript /opt/software/run_snf.R {{num_neighbors}} {{alpha}} 20 {{num_clusters}} {{ input_matrices|join(' ') }}
