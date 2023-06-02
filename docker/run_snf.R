@@ -41,8 +41,8 @@ W = SNF(affinity_list, K, T)
 # perform clustering on the fused network.
 clustering = spectralClustering(W, num_clusters);
 
-similarity_mtx_output_file = 'snf_similarity.tsv'
-clustering_output_file = 'snf_clustering.tsv'
+similarity_mtx_output_file = paste(working_dir,'snf_similarities.tsv', sep='/')
+clustering_output_file = paste(working_dir,'snf_clusters.tsv', sep='/')
 write.table(W, similarity_mtx_output_file, sep='\t', row.names=F, col.names=F)
 write.table(clustering, clustering_output_file, sep='\t', row.names=F, col.names=F)
 
