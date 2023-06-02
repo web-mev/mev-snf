@@ -17,7 +17,7 @@
             "description": "How many neighbors are considered when clustering? The SNF authors recommend a number in the range of 10-30", 
             "name": "Neighbors:", 
             "required": true, 
-            "converter": "api.converters.basic_attributes.StringConverter",
+            "converter": "api.converters.basic_attributes.IntegerConverter",
             "spec": {
                 "attribute_type": "IntegerOption", 
                 "options": [10,15,20, 25, 30],
@@ -28,7 +28,7 @@
             "description": "The parameter controls the weights in the matrix of sample-to-sample similarities; the authors recommend 0.3-0.8. See paper for further details.", 
             "name": "Scaling parameter:", 
             "required": true, 
-            "converter": "api.converters.basic_attributes.StringConverter",
+            "converter": "api.converters.basic_attributes.FloatConverter",
             "spec": {
                 "attribute_type": "FloatOption", 
                 "options": [0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
