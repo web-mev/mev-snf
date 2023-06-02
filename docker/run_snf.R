@@ -38,13 +38,28 @@ affinity_list <- lapply(dist_list, function(x) affinityMatrix(x, K, alpha))
 
 W = SNF(affinity_list, K, T)
 
+# Add some row/col names such that WebMeV can ingest the output. 
+# TODO: come up with a naming scheme. At the moment, we assume all the 
+# input files are ordered in the same manner. That is, column k of all
+# matrices correspond to patient k. In general however, the columns could be named
+# by an identifier OTHER than the patient ID (e.g. an aliquot ID like in TCGA). In 
+# such a case, there is no obvious way to name the output sample-by-sample
+# similarity matrix except to add simple identifiers and let the users sort that.
+# Also note that W gets names auto-assigned, but we override here, just to ensure
+# that we are consistent with the clustering file.
+N = dim(W)[1]
+dummySampleIDs = paste(rep('S',N), 1:N, sep='')
+rownames(W) = dummySampleIDs
+colnames(W) = dummySampleIDs
+
 # perform clustering on the fused network.
-clustering = spectralClustering(W, num_clusters);
+clustering = data.frame(cluster=spectralClustering(W, num_clusters), row.names=dummySampleIDs)
+
 
 similarity_mtx_output_file = paste(working_dir,'snf_similarities.tsv', sep='/')
 clustering_output_file = paste(working_dir,'snf_clusters.tsv', sep='/')
-write.table(W, similarity_mtx_output_file, sep='\t', row.names=F, col.names=F)
-write.table(clustering, clustering_output_file, sep='\t', row.names=F, col.names=F)
+write.table(W, similarity_mtx_output_file, sep='\t', quote=F)
+write.table(clustering, clustering_output_file, sep='\t', quote=F)
 
 # create the expected outputs file:
 json_str = paste0(
