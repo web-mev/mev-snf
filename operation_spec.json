@@ -19,9 +19,9 @@
             "required": true, 
             "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
-                "attribute_type": "OptionString", 
-                "options": ["10","15","20", "25", "30"],
-                "default": "20"
+                "attribute_type": "IntegerOption", 
+                "options": [10,15,20, 25, 30],
+                "default": 20
             }
         },
         "alpha": {
@@ -30,9 +30,9 @@
             "required": true, 
             "converter": "api.converters.basic_attributes.StringConverter",
             "spec": {
-                "attribute_type": "OptionString", 
-                "options": ["0.3","0.4","0.5", "0.6", "0.7", "0.8"],
-                "default": "0.5"
+                "attribute_type": "FloatOption", 
+                "options": [0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                "default": 0.5
             }
         },
         "num_clusters": {
