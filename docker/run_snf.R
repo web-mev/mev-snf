@@ -10,17 +10,41 @@ if(argnum < 6){
     quit(status=1)
 }
 
-K<-as.integer(args[1])        # number of neighbors, usually (10~30)
-alpha<-as.numeric(args[2])    # hyperparameter, usually (0.3~0.8)
-T <- as.numeric(args[3])      # Number of Iterations, usually (10~20)
+K<-as.integer(args[1])               # number of neighbors, usually (10~30)
+alpha<-as.numeric(args[2])           # hyperparameter, usually (0.3~0.8)
+T <- as.numeric(args[3])             # Number of Iterations, usually (10~20)
 num_clusters <- as.integer(args[4])
-input_files <- args[5:argnum]
+primary_input_file <- args[5]        # the matrix which dictates the final sample/aliquot IDs
+input_files <- args[6:argnum]        # other matrices to use
 
 # change the working directory to co-locate with the input files:
-working_dir <- dirname(input_files[[1]])
+working_dir <- dirname(primary_input_file)
 setwd(working_dir)
 
-mtx_list <- lapply(input_files, read.table)
+# read the primary file and extract the column names which will dictate the final sample IDs
+primary_mtx = read.table(primary_input_file, sep='\t', row.names=1, header=T, check.names=F)
+sample_ids = colnames(primary_mtx)
+
+# check that we don't have duplicated data and read the other matrix files
+if (primary_input_file %in% input_files) {
+    message('You have selected the same input file twice. If you choose a file to be the primary input data, you cannot choose the same file again for the remaining inputs.')
+    quit(status=1)
+}
+mtx_list <- lapply(input_files, read.table, sep='\t', row.names=1, header=T)
+
+# check that the other matrices have the same number of columns (using the 'primary'
+# matrix as the one which determines the correct dimension)
+n <- length(sample_ids)
+df_sizes = lapply(mtx_list, function(x) dim(x)[2])
+all_same_size <- all(unlist(lapply(df_sizes, function(x) x == n)))
+if (!all_same_size){
+    message(sprintf('Not all of the input matrices had the same number of columns. We were expecting all inputs to have %d columns, but we found the following numbers of columns: %s. Please check your inputs.', n, paste(df_sizes, collapse=', ')))
+    quit(status=1)
+}
+
+
+# append the primary_mtx dataframe to that list:
+mtx_list <- c(list(primary_mtx), mtx_list)
 
 # In the normalization and distance calculations, it is expected that the matrix is (n_samples, n_features) so we need
 # to first transpose the canonical orientation of our input matrices, which are (n_genes, n_samples)
@@ -39,22 +63,16 @@ affinity_list <- lapply(dist_list, function(x) affinityMatrix(x, K, alpha))
 W = SNF(affinity_list, K, T)
 
 # Add some row/col names such that WebMeV can ingest the output. 
-# TODO: come up with a naming scheme. At the moment, we assume all the 
-# input files are ordered in the same manner. That is, column k of all
-# matrices correspond to patient k. In general however, the columns could be named
+# In general, the columns of each matrix could be named
 # by an identifier OTHER than the patient ID (e.g. an aliquot ID like in TCGA). In 
 # such a case, there is no obvious way to name the output sample-by-sample
-# similarity matrix except to add simple identifiers and let the users sort that.
-# Also note that W gets names auto-assigned, but we override here, just to ensure
-# that we are consistent with the clustering file.
-N = dim(W)[1]
-dummySampleIDs = paste(rep('S',N), 1:N, sep='')
-rownames(W) = dummySampleIDs
-colnames(W) = dummySampleIDs
+# similarity matrix except to have users define the 'primary' matrix as we have above.
+# That matrix will set the row/colnames
+rownames(W) = sample_ids
+colnames(W) = sample_ids
 
 # perform clustering on the fused network.
-clustering = data.frame(cluster=spectralClustering(W, num_clusters), row.names=dummySampleIDs)
-
+clustering = data.frame(cluster=spectralClustering(W, num_clusters), row.names=sample_ids)
 
 similarity_mtx_output_file = paste(working_dir,'snf_similarities.tsv', sep='/')
 clustering_output_file = paste(working_dir,'snf_clusters.tsv', sep='/')
