@@ -42,6 +42,29 @@ if (!all_same_size){
     quit(status=1)
 }
 
+# we can't check by name, so we have to check the contents of each matrix to ensure the user did not duplicate
+# the data. Since WebMeV assigns a unique path/UUID to each file input, we can't check for duplicated data by file path.
+check_for_duplicated_data <- function(df, primary_df) {
+    out <- tryCatch(
+        {
+            is_equal = df == primary_df
+            if(all(is_equal)){
+                return(TRUE)
+            }
+            return(FALSE)
+        },
+        error=function(x){
+            return(FALSE)
+        }
+    )
+    return(out)
+}
+duplicated <- lapply(mtx_list, check_for_duplicated_data, primary_mtx)
+if (any(unlist(duplicated))){
+    message('You have selected the same input file twice. If you choose a file to be the primary input data, you cannot choose the same file again for the remaining inputs.')
+    quit(status=1)
+}
+
 
 # append the primary_mtx dataframe to that list:
 mtx_list <- c(list(primary_mtx), mtx_list)
