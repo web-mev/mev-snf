@@ -1,0 +1,8 @@
+name: base
+channels:
+  - anaconda
+  - conda-forge
+dependencies:
+  - r-base=4.3.2
+  - r-alluvial=0.1_2
+  - r-exposition=2.8.23

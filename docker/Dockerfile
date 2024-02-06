@@ -1,14 +1,17 @@
-From r-base:4.3.0
+FROM mambaorg/micromamba
 
-SHELL ["/bin/bash", "-c"]
+# for building the conda env
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
+# Build the environment based on the yml file
+RUN micromamba install -y -n base -f /tmp/environment.yml \
+  && micromamba clean --all --yes
 
-# Install all software under /opt/software:
-RUN mkdir -p /opt/software 
-
-# Get the miniconda installer script and run it in silent mode:
-RUN wget http://compbio.cs.toronto.edu/SNF/SNF/Software_files/SNFtool_v2.1.tar.gz -O /opt/software/SNFtool_v2.1.tar.gz && \
-  cd /opt/software && \
-  tar -xzf SNFtool_v2.1.tar.gz && \
+USER $MAMBA_USER
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN curl -o /tmp/snf.tar.gz https://cran.r-project.org/src/contrib/SNFtool_2.3.1.tar.gz && \
+  cd /tmp && \
+  tar -xzf snf.tar.gz && \
   R CMD INSTALL SNFtool
 
-ADD run_snf.R /opt/software/
+ADD run_snf.R /usr/local/bin/
+
